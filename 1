@@ -1,0 +1,80 @@
+/*
+ ============================================================================
+ Name        : h_0910.c
+ Author      : 
+ Version     :
+ Copyright   : Your copyright notice
+ Description : Hello World in C, Ansi-style
+ ============================================================================
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+struct node{
+	int data;
+	struct node* next;
+};
+
+int main(void) {
+
+	int selected=0;
+	struct node* head = NULL;
+	while (selected!=4){
+		puts("Uj elem hozzaadasa ");
+		puts("N. elem torlese ");
+		puts("Listazas ");
+		puts("Kilepes ");
+		scanf("%d",&selected);
+
+		if(selected==1){
+
+			struct node* newnode = (struct node*)malloc(sizeof(struct node));
+			scanf("%d",&newnode->data);
+			newnode->next=head;
+			head=newnode;
+		}else{
+
+			//kereses
+			/*
+			struct node* tmp=head;
+			for(;tmp->data!=4;tmp=tmp->next);		//elszall ha ures a lista vagy nincs benne 4-es
+			*/
+
+			//torles					//ures lista -- hiba
+			if(head->data==4){			//elso elemet toroljuk
+				struct node* tmp = head;
+				head=head->next;
+				free(tmp);
+			}else{
+				struct node* tmp;			//elso elemet nem tudja torolni elagazas nelkul
+				struct node* pre;
+				pre = head;
+				tmp = head->next;
+				for(;tmp->data!=4;tmp=tmp->next, pre=pre->next);
+				pre->next=tmp->next;
+				free(tmp);
+			}
+
+
+
+
+
+
+
+		}
+
+
+
+
+	}
+
+
+
+
+
+
+
+
+	return EXIT_SUCCESS;
+}
