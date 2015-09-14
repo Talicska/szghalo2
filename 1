@@ -1,13 +1,3 @@
-/*
- ============================================================================
- Name        : h_0910.c
- Author      : 
- Version     :
- Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
- ============================================================================
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,23 +7,50 @@ struct node{
 };
 
 int main(void) {
-
 	int selected=0;
 	struct node* head = NULL;
 	while (selected!=4){
-		puts("Uj elem hozzaadasa ");
-		puts("N. elem torlese ");
-		puts("Listazas ");
-		puts("Kilepes ");
+		puts("1 - Uj elem hozzaadasa ");
+		puts("2 - N. elem torlese ");
+		puts("3 - Listazas ");
+		puts("4 - Kilepes ");
 		scanf("%d",&selected);
 
 		if(selected==1){
-
 			struct node* newnode = (struct node*)malloc(sizeof(struct node));
 			scanf("%d",&newnode->data);
 			newnode->next=head;
 			head=newnode;
-		}else{
+		}else if(selected==2){
+			int s;
+			scanf("%d",&s);
+			struct node* tmp=head;
+			if(s==0){
+				head=head->next;
+				free(tmp);
+			}else{
+				struct node* pre = head;
+				tmp=head->next;
+				for(;s!=1;s--, tmp=tmp->next, pre=pre->next);
+				pre->next=tmp->next;
+				free(tmp);
+			}
+		}else if(selected==3){
+			struct node* tmp=head;
+			for(;tmp->next!=NULL;tmp=tmp->next)
+				printf("%d ",tmp->data);
+			printf("%d\n",tmp->data);
+		}
+	}
+
+	struct node* pre=head;
+	struct node* tmp=head;
+	for(;tmp->next!=NULL;tmp=tmp->next, free(pre), pre=tmp);
+	free(tmp);
+
+	return EXIT_SUCCESS;
+}
+
 
 			//kereses
 			/*
@@ -42,7 +59,7 @@ int main(void) {
 			*/
 
 			//torles					//ures lista -- hiba
-			if(head->data==4){			//elso elemet toroljuk
+			/*if(head->data==4){			//elso elemet toroljuk
 				struct node* tmp = head;
 				head=head->next;
 				free(tmp);
@@ -55,26 +72,4 @@ int main(void) {
 				pre->next=tmp->next;
 				free(tmp);
 			}
-
-
-
-
-
-
-
-		}
-
-
-
-
-	}
-
-
-
-
-
-
-
-
-	return EXIT_SUCCESS;
-}
+			*/
