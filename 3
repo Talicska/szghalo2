@@ -18,6 +18,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+//terminalban kliens:  telnet localhost 1111
+
+//setsockopt  	port felszabaditasa, listener utan kell berakni, socket() és bind() kozé
+
+//telnet /r/n -t tesz a vegere,  a c meg /0 -t
+
 int main(void)
 {
 	struct addrinfo hints, *res;
@@ -34,12 +40,17 @@ int main(void)
 	bind(listener, res->ai_addr, res->ai_addrlen);
 	listen(listener, 10);
 
-	new_fd = accept(listener, 0, 0);		//itt kell elmenteni majd a cimet
+	new_fd = accept(listener, 0, 0);		//itt kell elmenteni majd a cimet,, port kiolvasasa: ntohs(port)
+											//uzenetek beirase: sprintf(msg,"asdasd %d",ertek);
+											//osszefuzes: strcat
 
 	send(new_fd, "Valami", strlen("Valami"),0);
 
 	close(new_fd);
 	close(listener);
+
+	freeaddrinfo(res);
+
 
 
 	return EXIT_SUCCESS;
