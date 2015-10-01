@@ -1,0 +1,46 @@
+/*
+ ============================================================================
+ Name        : szgh10_01.c
+ Author      : 
+ Version     :
+ Copyright   : Your copyright notice
+ Description : Hello World in C, Ansi-style
+ ============================================================================
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <string.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+int main(void)
+{
+	struct addrinfo hints, *res;
+	int listener, new_fd;
+
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	getaddrinfo(NULL,1111, &hints, &res);
+
+	listener = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	bind(listener, res->ai_addr, res->ai_addrlen);
+	listen(listener, 10);
+
+	new_fd = accept(listener, 0, 0);		//itt kell elmenteni majd a cimet
+
+	send(new_fd, "Valami", strlen("Valami"),0);
+
+	close(new_fd);
+	close(listener);
+
+
+	return EXIT_SUCCESS;
+}
