@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+int main(int argc, char *argv[]) {
+
+	if (argc != 2)
+		return EXIT_FAILURE;
+
+	struct addrinfo hints;
+	struct addrinfo *res;
+
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	if(getaddrinfo(argv[1], NULL, &hints, &res) != 0)
+		return -1;
+
+	printf("Address(es) of %s:\n",argv[1]);
+
+	struct addrinfo *p = res;
+	void *v;
+	char c[INET6_ADDRSTRLEN];
+	for(;p!=NULL;p=p->ai_next){
+		if(p->ai_family == AF_INET){
+			struct sockaddr_in *sa4 = (struct sockaddr_in*)p->ai_addr;
+			//char ip4[INET_ADDRSTRLEN];
+			//inet_ntop(AF_INET, &(sa4->sin_addr), ip4, sizeof ip4);
+			//printf("%s\n", ip4);
+			v = &sa4->sin_addr;
+		}else if(p->ai_family == AF_INET6){
+			struct sockaddr_in6 *sa6 = (struct sockaddr_in6*)p->ai_addr;
+			//char ip6[INET6_ADDRSTRLEN];
+			//inet_ntop(AF_INET6, &(sa6->sin6_addr), ip6, sizeof ip6);
+			//printf("%s\n", ip6);
+			v = &sa6->sin6_addr;
+		}
+		inet_ntop(p->ai_family, v, c, sizeof c);
+		printf("%s\n",c);
+	}
+
+	freeaddrinfo(res);
+
+	return EXIT_SUCCESS;
+
+}
