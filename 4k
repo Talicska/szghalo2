@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+int main(int argc, char *argv[]) {
+
+	if (argc != 2)
+		return EXIT_FAILURE;
+
+	struct addrinfo hints;
+	struct addrinfo *res;
+	int sockfd;
+	char buf[512]="";
+
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+
+	if(getaddrinfo("localhost", "1111", &hints, &res) != 0)
+		return -1;
+	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	struct sockaddr addr;
+	addr = *(res->ai_addr);
+	socklen_t addrsize = sizeof addr;
+	sendto(sockfd, argv[1], strlen(argv[1]), 0, &addr, addrsize);
+	recvfrom(sockfd, buf, sizeof(buf), 0, NULL, NULL);
+
+	//buf[strlen(buf)] = '\0';
+	//buf[strlen(buf)] = '\0';
+
+	printf("%s\n",buf);
+
+	freeaddrinfo(res);
+	close(sockfd);
+
+	return EXIT_SUCCESS;
+
+}
