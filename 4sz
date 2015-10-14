@@ -21,14 +21,13 @@ recvfrom
 */
 
 
-
 int main() {
 
 
 	struct addrinfo hints;
 	struct addrinfo *res;
 	int sockfd;
-	char buf[512];
+	char buf[512]="";
 
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
@@ -37,22 +36,17 @@ int main() {
 
 	if(getaddrinfo(NULL, "1111", &hints, &res) != 0)
 		return -1;
-
 	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	bind(sockfd, res->ai_addr, res->ai_addrlen);
-
 	socklen_t fromlen;
 	struct sockaddr addr;
 	fromlen = sizeof addr;
 	recvfrom(sockfd, buf, sizeof buf, 0, &addr, &fromlen);
-
-
+	puts(buf);
 
 	struct addrinfo *res2;
 	if(getaddrinfo(buf, NULL, &hints, &res2) != 0)
 			return -1;
-
-
 
 	struct addrinfo *p = res2;
 	void *v;
@@ -68,11 +62,14 @@ int main() {
 		}
 		inet_ntop(p->ai_family, v, c, sizeof c);
 		strcat(final, c);
+		strcat(final,"\n");
 	}
 
-	sendto(sockfd, final, sizeof final, 0, &addr, fromlen);
+	sendto(sockfd, final, strlen(final), 0, &addr, fromlen);
 
 	freeaddrinfo(res);
+	freeaddrinfo(res2);
+	close(sockfd);
 
 	return EXIT_SUCCESS;
 
