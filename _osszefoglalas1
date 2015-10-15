@@ -5,8 +5,9 @@ saját név lekérdezése:
   gethostname
 
 
-
-
 távoli cím lekérdezése:
   getaddrinfo(név...)
   accept (ha akarok összeköttetést létesíteni)
+
+távoli név lekérdezése:
+  getnameinfo
