@@ -1,0 +1,38 @@
+/*
+ ============================================================================
+ Name        : h5.c
+ Author      : 
+ Version     :
+ Copyright   : Your copyright notice
+ Description : Hello World in C, Ansi-style
+ ============================================================================
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+char* cesar(char in[]){
+	int i=0;
+	while(in[i] != '\0'){
+		if(in[i]=='x'){
+			in[i] = 'a';
+		}else if(in[i]=='y'){
+			in[i] = 'b';
+		}if(in[i]=='z'){
+			in[i] = 'c';
+		}else{
+			in[i] += 3;
+		}
+		i++;
+	}
+return in;
+}
+
+int main(void) {
+
+	char s[] ="qwerzza";
+	puts(cesar(s));
+
+
+	return EXIT_SUCCESS;
+}
