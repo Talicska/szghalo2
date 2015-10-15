@@ -1,0 +1,12 @@
+saját cím lekérdezése:
+  getaddrinfo(null...) (ai_passive)
+  
+saját név lekérdezése:
+  gethostname
+
+
+
+
+távoli cím lekérdezése:
+  getaddrinfo(név...)
+  accept (ha akarok összeköttetést létesíteni)
