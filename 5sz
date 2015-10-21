@@ -1,27 +1,21 @@
-/*
- ============================================================================
- Name        : h5.c
- Author      : 
- Version     :
- Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
- ============================================================================
- */
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <string.h>
 
 char* cesar(char in[]){
 	int i=0;
-	while(in[i] != '\0'){
+	while(i != strlen(in)){
 		if(in[i]=='x'){
 			in[i] = 'a';
 		}else if(in[i]=='y'){
 			in[i] = 'b';
-		}if(in[i]=='z'){
+		}else if(in[i]=='z'){
 			in[i] = 'c';
 		}else{
-			in[i] += 3;
+			in[i] = in[i] + 3;
 		}
 		i++;
 	}
@@ -30,9 +24,102 @@ return in;
 
 int main(void) {
 
-	char s[] ="qwerzza";
-	puts(cesar(s));
+	struct addrinfo hints, *res;
+	int listener, new_fd;
 
+	//listener
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	getaddrinfo("localhost","1111", &hints, &res);
+
+	listener = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	int yes=1;
+	setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int));
+
+	bind(listener, res->ai_addr, res->ai_addrlen);
+	listen(listener, 10);
+	//
+
+	//accept
+	struct sockaddr theiraddr;
+	unsigned int theiraddrsize = sizeof theiraddr;
+
+	new_fd = accept(listener, &theiraddr, &theiraddrsize);
+	//
+
+
+	char ipstr[INET6_ADDRSTRLEN] = "";
+	int port = -1;
+
+	//server address
+	struct sockaddr myraddr = *res->ai_addr;
+
+	if (myraddr.sa_family == AF_INET){
+		struct sockaddr_in *ip4 = (struct sockaddr_in*)&myraddr;
+		void* addr = &ip4->sin_addr;
+		inet_ntop(myraddr.sa_family, addr, ipstr, sizeof ipstr);
+		port = ntohs(ip4->sin_port);
+	}else{
+		struct sockaddr_in6 *ip6 = (struct sockaddr_in6*)&myraddr;
+		void* addr = &ip6->sin6_addr;
+		inet_ntop(myraddr.sa_family, addr, ipstr, sizeof ipstr);
+		port = ntohs(ip6->sin6_port);
+	}
+	//
+
+	char final[500]="";
+	char portstr[5];
+
+	strcat(final, "**Szerver: \n");
+	sprintf(portstr, "%d", port);
+	strcat(final, ipstr);
+	strcat(final, " : ");
+	strcat(final, portstr);
+	strcat(final,"\n");
+
+	//client address
+	if (theiraddr.sa_family == AF_INET){
+		struct sockaddr_in *ip4 = (struct sockaddr_in*)&theiraddr;
+		void* addr = &ip4->sin_addr;
+		inet_ntop(theiraddr.sa_family, addr, ipstr, sizeof ipstr);
+		port = ntohs(ip4->sin_port);
+	}else{
+		struct sockaddr_in6 *ip6 = (struct sockaddr_in6*)&theiraddr;
+		void* addr = &ip6->sin6_addr;
+		inet_ntop(theiraddr.sa_family, addr, ipstr, sizeof ipstr);
+		port = ntohs(ip6->sin6_port);
+	}
+	//
+
+	strcat(final, "\**Kliens: \n");
+	sprintf(portstr, "%d", port);
+	strcat(final, ipstr);
+	strcat(final, " : ");
+	strcat(final, portstr);
+	strcat(final,"\n");
+
+	//cezar
+	char msgin[100]="";
+	recv(new_fd, msgin, sizeof msgin, 0);
+
+	char* msgout = cesar(msgin);
+	msgout[strlen(msgout)-1] = '\0';
+	msgout[strlen(msgout)-1] = '\0';
+	strcat(final, "**Uzenet:\n");
+	strcat(final, msgout);
+	strcat(final, "\n");
+	//
+
+	//send
+	send(new_fd, final, strlen(final),0);
+	//
+
+	close(new_fd);
+	close(listener);
+	freeaddrinfo(res);
 
 	return EXIT_SUCCESS;
 }
