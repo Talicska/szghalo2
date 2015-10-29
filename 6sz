@@ -1,1 +1,102 @@
-q
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <string.h>
+
+
+
+/*
+socket
+bind
+listen
+
+while(1){
+	select(ha listener){
+		accept
+	}else{
+		recv
+	}
+}
+
+// * ha elerjuk a maxclientset,
+// akkor is accepteljunk
+// de egybol bontsuk is hogy ne csak varjon a kliens
+// * listenerre ne küldjünk
+// select kiszedi a setbol amiken nem volt adat, ezert ketto set kell
+// klienseket lancolt listaban taroljuk
+
+*/
+
+int main(void) {
+
+
+	struct addrinfo hints, *res;
+	int listener;
+
+	//listener
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	getaddrinfo("localhost","1111", &hints, &res);
+
+	listener = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+	int yes=1;
+	setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int));
+
+	bind(listener, res->ai_addr, res->ai_addrlen);
+
+	listen(listener, 10);
+	//
+
+	fd_set master, readfds;		//master az eredeti set
+	FD_ZERO(&master);
+	FD_SET(listener, &master);
+
+	int fdmax = listener;
+	int i,j;
+
+	int newfd;
+	char buf[250]="";
+
+	while(1){
+
+		readfds = master;
+		select(fdmax+1, &readfds, NULL, NULL, NULL);
+
+		for(i=0;i<=fdmax;i++){
+
+			if(FD_ISSET(i, &readfds)){
+
+				if(i==listener){
+					newfd=accept(listener, 0, 0);
+					FD_SET(newfd, &master);
+					if(newfd > fdmax){
+						fdmax = newfd;
+					}
+				}else{
+					buf = "";
+					int recvbytes = recv(i, buf, sizeof buf, 0);		//ha recvbytes == 0 bontani kell a kapcsolatot stb
+					buf[recvbytes-2] = '\n';
+					buf[recvbytes-1] = '\0';
+					for(j=0;j<fdmax;j++){
+						if(i!=j && j!=listener && FD_ISSET(j, &master)){
+							send(j, buf, strlen(buf), 0);
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+
+
+	freeaddrinfo(res);
+
+	return EXIT_SUCCESS;
+}
