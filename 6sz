@@ -29,8 +29,48 @@ while(1){
 
 */
 
+struct client{
+	int clientfd;
+	struct client* next;
+};
+/*
+struct client* addClient(struct client* head, int fd){
+	struct client* newClient = (struct client*)malloc(sizeof(struct client));
+	newClient->clientfd=fd;
+	newClient->next = head;
+	head = newClient;
+	return newClient;
+}
+
+void removeClient(struct client* head, int fd){
+	if(head == NULL)
+		return;
+	struct client* c = head;
+	if(c->clientfd == fd){
+		head = c->next;
+		free(c);
+		return;
+	}
+	while(c != NULL && c->clientfd != fd){
+		c = c->next;
+	}
+	if(c->clientfd == fd){
+		struct client* cprev = head;
+		while(cprev->next && cprev->next != c){
+			cprev = cprev->next;
+		}
+		cprev->next = c->next;
+		free(c);
+	}
+}
+*/
+
+
 int main(void) {
 
+	int MAXCLIENTS = 2;
+	int clientcount = 0;
+	struct client* head = NULL;
 
 	struct addrinfo hints, *res;
 	int listener;
@@ -58,10 +98,13 @@ int main(void) {
 	FD_SET(listener, &master);
 
 	int fdmax = listener;
-	int i,j;
+	int i,j,k;
 
 	int newfd;
 	char buf[250]="";
+
+	int hisztogram[256];
+	char newmsg[500]="";
 
 	while(1){
 
@@ -74,27 +117,93 @@ int main(void) {
 
 				if(i==listener){
 					newfd=accept(listener, 0, 0);
-					FD_SET(newfd, &master);
-					if(newfd > fdmax){
-						fdmax = newfd;
+					if(MAXCLIENTS > clientcount){
+						clientcount++;
+						FD_SET(newfd, &master);
+
+						struct client* newClient = (struct client*)malloc(sizeof(struct client));
+							newClient->clientfd=newfd;
+							newClient->next = head;
+							head = newClient;
+
+						if(newfd > fdmax){
+							fdmax = newfd;
+						}
+					}else{
+						close(newfd);
 					}
+
 				}else{
-					buf = "";
+					memset(&buf, 0, sizeof buf);
 					int recvbytes = recv(i, buf, sizeof buf, 0);		//ha recvbytes == 0 bontani kell a kapcsolatot stb
-					buf[recvbytes-2] = '\n';
-					buf[recvbytes-1] = '\0';
-					for(j=0;j<fdmax;j++){
-						if(i!=j && j!=listener && FD_ISSET(j, &master)){
-							send(j, buf, strlen(buf), 0);
+					if(recvbytes == 0){
+						close(i);
+						clientcount--;
+						FD_CLR(i, &master);
+
+						if(head != NULL){
+
+							struct client* c = head;
+							if(c->clientfd == i){
+								head = c->next;
+								free(c);
+							}else{
+								while(c != NULL && c->clientfd != i){
+									c = c->next;
+								}
+								if(c->clientfd == i){
+									struct client* cprev = head;
+									while(cprev->next && cprev->next != c){
+										cprev = cprev->next;
+									}
+									cprev->next = c->next;
+									free(c);
+								}
+							}
+						}
+
+					}else{
+						buf[recvbytes-2] = '\n';
+						buf[recvbytes-1] = '\0';
+
+						//modify the message
+						memset(&newmsg, 0, sizeof newmsg);
+						sprintf(newmsg, "%s\tSocket: %d\t", buf, i);
+
+						char tempchar[6]="";
+
+						for(k=0;k<256;k++){
+							hisztogram[k]=0;
+						}
+						for(k=0;k<strlen(buf);k++){
+							hisztogram[buf[k]]++;
+						}
+						for(k=0;k<256;k++){
+							if(hisztogram[k] > 0 && k > 31){
+								sprintf(tempchar, "%c", k);
+								strcat(newmsg, tempchar);
+								sprintf(tempchar, "%d", hisztogram[k]);
+								strcat(newmsg, " : ");
+								strcat(newmsg, tempchar);
+								strcat(newmsg, "  ");
+							}
+						}
+
+						strcat(newmsg, "\n");
+						puts(newmsg);
+						//
+
+						for(j=0;j<=fdmax;j++){
+							if(i!=j && j!=listener && FD_ISSET(j, &master)){
+								//send(j, buf, strlen(buf), 0);
+								send(j, newmsg, strlen(newmsg), 0);
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-
-
-
 
 	freeaddrinfo(res);
 
